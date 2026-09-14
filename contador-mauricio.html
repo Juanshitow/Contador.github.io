@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuenta regresiva: Mauricio renuncia</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 20%, #4a1e73 0%, #2b0f4a 45%, #150726 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #f3e9ff;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .ghost {
+    position: fixed;
+    font-size: 2.5rem;
+    opacity: 0.15;
+    animation: floaty 6s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ghost:nth-child(1) { top: 10%; left: 8%; animation-delay: 0s; }
+  .ghost:nth-child(2) { top: 70%; left: 15%; animation-delay: 1.5s; }
+  .ghost:nth-child(3) { top: 20%; right: 10%; animation-delay: 0.8s; }
+  .ghost:nth-child(4) { top: 75%; right: 12%; animation-delay: 2.2s; }
+  .ghost:nth-child(5) { top: 45%; left: 3%; animation-delay: 3s; }
+  .ghost:nth-child(6) { top: 50%; right: 4%; animation-delay: 1s; }
+
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0px) rotate(-3deg); }
+    50% { transform: translateY(-25px) rotate(3deg); }
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    margin-bottom: 10px;
+    text-shadow: 3px 3px 0px #6b1fb3, 0 0 25px rgba(255, 40, 90, 0.5);
+    color: #ffffff;
+  }
+
+  .subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    opacity: 0.85;
+    margin-bottom: 30px;
+    color: #d6b8ff;
+  }
+
+  /* Frase del dia */
+  .daily-phrase {
+    background: rgba(176, 63, 224, 0.15);
+    border: 1px solid #b03fe0;
+    border-radius: 14px;
+    padding: 10px 18px;
+    margin-bottom: 30px;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: #f3e9ff;
+    font-style: italic;
+  }
+
+  .countdown {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 25px;
+  }
+
+  .time-box {
+    background: rgba(107, 31, 179, 0.25);
+    backdrop-filter: blur(10px);
+    border: 2px solid #b03fe0;
+    border-radius: 20px;
+    padding: 20px 25px;
+    min-width: 110px;
+    box-shadow: 0 0 25px rgba(176, 63, 224, 0.5), inset 0 0 15px rgba(255, 40, 90, 0.15);
+  }
+
+  .time-number {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 4px 4px 0px #3a0d63, 0 0 15px #ff284a;
+  }
+
+  .time-label {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.85;
+    margin-top: 8px;
+    color: #e6a8ff;
+  }
+
+  /* Barra de progreso */
+  .progress-wrap {
+    margin: 10px 0 25px 0;
+  }
+
+  .progress-label {
+    font-size: 0.9rem;
+    color: #d6b8ff;
+    margin-bottom: 6px;
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 22px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid #b03fe0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.4);
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #6b1fb3, #ff284a);
+    box-shadow: 0 0 15px #ff284a;
+    transition: width 0.5s ease;
+  }
+
+  .footer-msg {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    margin-top: 10px;
+    font-weight: bold;
+    color: #ffffff;
+  }
+
+  /* Foto sorpresa: solo visible mientras el progreso esta en 67% */
+  .milestone-photo {
+    display: none;
+    margin: 25px auto 0 auto;
+    width: min(80vw, 280px);
+    border-radius: 16px;
+    border: 3px solid #b03fe0;
+    box-shadow: 0 0 25px rgba(255, 40, 90, 0.5);
+    overflow: hidden;
+  }
+  .milestone-photo img {
+    width: 100%;
+    display: block;
+  }
+  .milestone-caption {
+    display: none;
+    font-size: 0.85rem;
+    color: #d6b8ff;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  .finished-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .finished-title {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 20px #ff284a, 0 0 40px #b03fe0;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .photo-box {
+    width: min(90vw, 400px);
+    height: min(90vw, 400px);
+    border-radius: 20px;
+    border: 4px solid #b03fe0;
+    box-shadow: 0 0 35px rgba(255, 40, 90, 0.6);
+    overflow: hidden;
+  }
+
+  .photo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  canvas#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+  <span class="ghost">👻</span>
+  <span class="ghost">👻</span>
+  <span class="ghost">👻</span>
+  <span class="ghost">👻</span>
+  <span class="ghost">👻</span>
+  <span class="ghost">👻</span>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="content">
+    <h1>¿Cuánto falta para que Mauricio renuncie?</h1>
+    <p class="subtitle">La cuenta regresiva más esperada del año</p>
+
+    <div class="daily-phrase" id="dailyPhrase">Cargando frase del día...</div>
+
+    <div class="countdown" id="countdown">
+      <div class="time-box">
+        <div class="time-number" id="days">00</div>
+        <div class="time-label">Días</div>
+      </div>
+      <div class="time-box">
+        <div class="time-number" id="hours">00</div>
+        <div class="time-label">Horas</div>
+      </div>
+      <div class="time-box">
+        <div class="time-number" id="minutes">00</div>
+        <div class="time-label">Minutos</div>
+      </div>
+      <div class="time-box">
+        <div class="time-number" id="seconds">00</div>
+        <div class="time-label">Segundos</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">0% del tiempo transcurrido</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Foto sorpresa: solo aparece mientras el progreso esta en 67%, desaparece en 68% -->
+    <div class="milestone-photo" id="milestonePhoto">
+      <img src="mauriciomeme.jpeg" alt="Foto sorpresa al 67%">
+    </div>
+    <p class="milestone-caption" id="milestoneCaption">📸 ¡Vamos por el Six Seven!</p>
+
+    <p class="footer-msg" id="footerMsg">Aguanta Mauricio, ya casi eres libre 🙏</p>
+
+    <div class="finished-box" id="finishedBox">
+      <div class="finished-title"> MAURICIO ES LIBRE 🎉</div>
+      <div class="photo-box">
+        <img src="mauricioprime.jpeg" alt="Mauricio y yo celebrando la renuncia">
+      </div>
+    </div>
+  </div>
+
+  <!-- Sonido de Gengar al llegar a 0. Reemplaza el src por tu archivo de audio -->
+  <audio id="gengarSound" src="TU_SONIDO_GENGAR_AQUI.mp3" preload="auto"></audio>
+
+  <script>
+    // ================== CONFIGURACION ==================
+    // Fecha en que arranca la cuenta (para calcular el % de la barra de progreso)
+    const START_DATE = new Date("2026-09-14T00:00:00");
+    // Fecha objetivo: 25 de septiembre de 2026, 11:00 PM
+    const targetDate = new Date("2026-09-25T23:00:00");
+
+    // Una frase por dia (se elige segun la fecha actual, cambia sola cada dia)
+    const dailyPhrases = [
+      "El epileptico realmente no aguanta mas no gorra ",
+      "Mauricio esta redactando la carta de renuncia📝",
+      "Mauricio no vuelve a poner un pie en Garden Plass 🏢",
+      "Mauricio no va a volver a estrellar el carro 🚗💥",
+      "Cada dia mas cerca mauricio polla sucia",
+      "Se viene el cine chaval 👀",
+      "Mauricio está escupiendo en la comida de los clientes 🍽️",
+      "Aplicando la dieta del caballo 👻",
+      "Mauricio esta cada vez mas acabado",
+      "Mauricio ya casi puede oler la libertad 🌤️",
+      "Cada dia peor 🔥",
+      "Ya falta poco crack"
+    ];
+
+    let finishedHandled = false;
+
+    function updateDailyPhrase() {
+      const dayIndex = Math.floor(Date.now() / 86400000) % dailyPhrases.length;
+      document.getElementById("dailyPhrase").textContent = "💬 " + dailyPhrases[dayIndex];
+    }
+
+    function updateProgressBar() {
+      const now = Date.now();
+      const total = targetDate.getTime() - START_DATE.getTime();
+      const elapsed = now - START_DATE.getTime();
+      let pct = (elapsed / total) * 100;
+      pct = Math.max(0, Math.min(100, pct));
+
+      document.getElementById("progressFill").style.width = pct + "%";
+      document.getElementById("progressLabel").textContent = pct.toFixed(1) + "% del tiempo transcurrido";
+
+      // La foto solo se ve mientras el porcentaje esta entre 67 y 68 (exclusivo)
+      const enRango67 = pct >= 67 && pct < 68;
+      document.getElementById("milestonePhoto").style.display = enRango67 ? "block" : "none";
+      document.getElementById("milestoneCaption").style.display = enRango67 ? "block" : "none";
+    }
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      const countdownEl = document.getElementById("countdown");
+      const footerMsg = document.getElementById("footerMsg");
+      const finishedBox = document.getElementById("finishedBox");
+      const progressWrap = document.getElementById("progressWrap");
+
+      if (diff <= 0) {
+        countdownEl.style.display = "none";
+        footerMsg.style.display = "none";
+        progressWrap.style.display = "none";
+        document.getElementById("milestonePhoto").style.display = "none";
+        document.getElementById("milestoneCaption").style.display = "none";
+        finishedBox.style.display = "flex";
+
+        if (!finishedHandled) {
+          finishedHandled = true;
+          launchConfetti();
+          const sound = document.getElementById("gengarSound");
+          sound.play().catch(() => {});
+        }
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById("days").textContent = String(days).padStart(2, "0");
+      document.getElementById("hours").textContent = String(hours).padStart(2, "0");
+      document.getElementById("minutes").textContent = String(minutes).padStart(2, "0");
+      document.getElementById("seconds").textContent = String(seconds).padStart(2, "0");
+
+      updateProgressBar();
+    }
+
+    // ================== CONFETI (Gengar colors) ==================
+    const canvas = document.getElementById("confettiCanvas");
+    const ctx = canvas.getContext("2d");
+    let confettiPieces = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function launchConfetti() {
+      const colors = ["#b03fe0", "#ff284a", "#6b1fb3", "#ffffff", "#e6a8ff"];
+      confettiPieces = [];
+      for (let i = 0; i < 180; i++) {
+        confettiPieces.push({
+          x: Math.random() * canvas.width,
+          y: -20 - Math.random() * canvas.height,
+          size: 6 + Math.random() * 8,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          speedY: 2 + Math.random() * 4,
+          speedX: -2 + Math.random() * 4,
+          rotation: Math.random() * 360,
+          rotationSpeed: -6 + Math.random() * 12
+        });
+      }
+      requestAnimationFrame(animateConfetti);
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let stillFalling = false;
+
+      confettiPieces.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y < canvas.height + 20) stillFalling = true;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      });
+
+      if (stillFalling) {
+        requestAnimationFrame(animateConfetti);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // ================== INICIO ==================
+    updateDailyPhrase();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    setInterval(updateDailyPhrase, 60 * 1000); // revisa cada minuto si cambió el día
+  </script>
+
+</body>
+</html>
